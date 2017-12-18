@@ -1,0 +1,28 @@
+---
+- name: "mkdir {{ adminer_install_path }}"
+  file:
+    path: "{{ adminer_install_path }}"
+    state: directory
+
+- name: Download adminer
+  get_url:
+    url: "https://github.com/vrana/adminer/releases/download/v{{ adminer_version }}/adminer-{{ adminer_version }}-mysql-{{ adminer_language }}.php"
+    dest: "{{ adminer_install_path }}/index.php"
+  tags:
+    - deploy
+
+- name: Download design
+  get_url:
+    url: "https://raw.githubusercontent.com/vrana/adminer/v{{ adminer_version }}/designs/{{ adminer_design }}/adminer.css"
+    dest: "{{ adminer_install_path }}/adminer.css"
+  when: adminer_design is defined
+  tags:
+    - deploy
+
+- name: nginx config
+  template:
+    src=nginx.conf.j2
+    dest=/etc/nginx/conf.d/adminer.conf
+  notify: reload nginx
+  tags:
+    - config 

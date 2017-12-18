@@ -1,0 +1,46 @@
+server {
+    listen      80;
+{% if nginx_ipv6 %}
+    listen [::]:80;
+{% endif %}
+    server_name {{ adminer_server_name }};
+
+{% if adminer_ssl_cert is defined and adminer_ssl_cert_key is defined %}
+    location / {
+        return https://$host$uri;
+    }
+}
+
+server {
+    listen  443; 
+{% if nginx_ipv6 %}
+    listen [::]:443;
+{% endif %}
+    ssl on;
+    ssl_certificate {{ adminer_ssl_cert }};
+    ssl_certificate_key {{ adminer_ssl_cert_key }};
+    server_name {{ adminer_server_name }};
+{% endif %}
+
+{% for from in adminer_allow_from %}
+   allow {{ from }};
+{% endfor %}
+   deny all;
+
+    root {{ adminer_install_path }};
+    index index.php index.html index.htm;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    location ~ \.php$ {
+        try_files $uri =404;
+        fastcgi_pass {{ adminer_phpfpm_listen }};
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+}
+
