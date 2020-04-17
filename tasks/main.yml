@@ -25,4 +25,4 @@
     dest=/etc/nginx/conf.d/adminer.conf
   notify: reload nginx
   tags:
-    - config 
+    - config
